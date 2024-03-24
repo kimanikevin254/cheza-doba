@@ -75,20 +75,6 @@ export default function App() {
     undefined
   }, [currentAudio])
 
-  // Component for each item
-  const renderItem = ({ item: audio, index }) => (
-    <TouchableOpacity 
-      className={audio.uri === currentTrack.uri && 'bg-black text-white font-semibold'}
-      onPress={() => playAudio(audio)}
-    >
-      <Text 
-        className={audio.uri === currentTrack.uri ? 'bg-black text-white font-semibold px-4 py-2 border-b' : 'px-4 py-2 border-b'}
-      >
-        {index + 1}. {audio.filename}
-      </Text>
-    </TouchableOpacity>
-  )
-
   const handleSliderChange = (value) => {
     if (!currentAudio) return;
 
@@ -108,10 +94,6 @@ export default function App() {
     return () => clearInterval(interval);
 
   }, [currentAudio, isPlaying])
-
-  useEffect(() => {
-    console.log(position)
-  }, [position])
 
   // Handle audio controls
   const handleAudioControls = async ({ action }) => {
@@ -152,8 +134,48 @@ export default function App() {
     }
 
   } 
+
+  // Format duration
+  function formatDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.round(seconds) % 60;
+    
+    return `${hours > 0 ? hours.toString().padStart(2, '0') + ':' : ''}${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+  // Component for each item
+  const renderItem = ({ item: audio, index }) => (
+    <TouchableOpacity 
+      // className={audio.uri === currentTrack && currentTrack.uri && 'bg-black text-white font-semibold'}
+      className={currentTrack && audio.uri === currentTrack.uri ? 'bg-[#c7c1f0] mx-4 my-2 p-2 rounded-lg' : 'bg-white mx-4 my-2 p-2 rounded-lg'}
+      onPress={() => playAudio(audio)}
+      activeOpacity={0.8}
+    >
+      <View className='flex-row gap-4 items-center'>
+        <View className='h-12 w-12 bg-gray-100 rounded-full items-center justify-center'>
+          <Text className='text-2xl font-semibold'>{audio.filename.split('')[0]}</Text>
+        </View>
+        
+        <View>
+          <Text className='font-semibold'>
+            {
+              audio.filename.length > 30 ?
+              audio.filename.slice(0, 30) + '...' :
+              audio.filename
+            }
+          </Text>
+          <Text className='text-gray-500 text-sm'>{formatDuration(audio.duration)}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  )
+
   return (
-    <SafeAreaView className='pt-8 flex-1'>
+    <SafeAreaView className='pt-8 flex-1 bg-white'>
+      <View className='py-2 px-4'>
+        <Text className='font-bold text-2xl'>NGOMA</Text>
+      </View>
       {
         audioList ? 
         (
@@ -162,12 +184,48 @@ export default function App() {
               data={audioList}
               renderItem={renderItem}
               keyExtractor={item => item.id}
-              className='flex-1'
+              className='flex-1 bg-gray-100'
             />
 
             {
-              currentAudio &&
-              <View className='pb-4'>
+              currentTrack &&
+              <View className='px-3 pt-3 bg-[#7539FE] rounded-t-2xl'>
+                <View className='flex-row items-center justify-between'>
+                  <View className='flex-row w-1/2 gap-2 items-center'>
+                    <View className='h-12 w-12 bg-gray-100 rounded-full items-center justify-center'>
+                      <Text className='text-2xl font-semibold'>{currentTrack.filename.split('')[0]}</Text>
+                    </View>
+
+                    <View>
+                      <Text className='font-semibold text-white text-sm'>
+                        {
+                          currentTrack.filename.length > 15 ?
+                          currentTrack.filename.slice(0, 15) + '...' :
+                          currentTrack.filename
+                        }
+                      </Text>
+                      <Text className='text-gray-200 text-xs'>{formatDuration(currentTrack.duration)}</Text>
+                    </View>
+                  </View>
+
+                  <View className='flex-row items-center w-1/2 justify-around'>
+                    <TouchableOpacity onPress={() => handleAudioControls({ action: 'previous' })}>
+                      <Entypo name="controller-jump-to-start" size={24} color="white" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => handleAudioControls({ action: 'play' })}>
+                      { isPaused ?
+                        <Entypo name="controller-play" size={24} color="white" /> :
+                        <Entypo name="controller-paus" size={24} color="white" />
+                      }
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={() => handleAudioControls({ action: 'next' })}>
+                      <Entypo name="controller-next" size={24} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
                 <Slider 
                   style={{ height: 50 }}
                   minimumValue={0}
@@ -176,22 +234,6 @@ export default function App() {
                   onSlidingComplete={handleSliderChange}
                   disabled={!currentAudio}
                 />
-                <View className='flex-row justify-around'>
-                  <TouchableOpacity onPress={() => handleAudioControls({ action: 'previous' })}>
-                    <Entypo name="controller-jump-to-start" size={24} color="black" />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity onPress={() => handleAudioControls({ action: 'play' })}>
-                    { isPaused ?
-                      <Entypo name="controller-play" size={24} color="black" /> :
-                      <Entypo name="controller-paus" size={24} color="black" />
-                    }
-                  </TouchableOpacity>
-
-                  <TouchableOpacity onPress={() => handleAudioControls({ action: 'next' })}>
-                    <Entypo name="controller-next" size={24} color="black" />
-                  </TouchableOpacity>
-                </View>
               </View>
             }
           </>
