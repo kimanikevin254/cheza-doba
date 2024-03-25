@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, SafeAreaView, ScrollView, View, Text, TouchableOpacity, FlatList } from "react-native";
 import * as MediaLibrary from 'expo-media-library'
-import { Audio } from 'expo-av'
+import { Audio, InterruptionModeAndroid } from 'expo-av'
 import Slider from '@react-native-community/slider';
 import { Entypo } from '@expo/vector-icons';
 
@@ -21,6 +21,18 @@ export default function App() {
   const [position, setPosition] = useState(0)
 
   const [isPlaying, setIsPlaying] = useState(false)
+
+  // Configure audio exprience on page load
+  useEffect(() => {
+    const setAudioExprience = async () => {
+      await Audio.setAudioModeAsync({
+        // shouldDuckAndroid: false,
+        staysActiveInBackground: true,
+      })
+    }
+
+    setAudioExprience()
+  }, [])
 
   // Fetch music on initial screen load
   useEffect(() => {
@@ -81,7 +93,7 @@ export default function App() {
     () => {
       console.log('Unloading')
       currentAudio.unloadAsync()
-      setCurrentAudio(null)
+      // setCurrentAudio(null)
       setIsPlaying(false)
       setDuration(0)
       setPosition(0)
@@ -112,17 +124,32 @@ export default function App() {
 
   }, [currentAudio, isPlaying])
 
+  // Check is audio has finished playing
+  useEffect(() => {
+    if(currentAudio){
+      if(position === duration){
+        setDuration(0)
+        setPosition(0)
+        setIsPlaying(false)
+      }
+    }
+
+  }, [position, duration])
+
   // Handle audio controls
   const handleAudioControls = async ({ action }) => {
     // Play/pause
     if(action === 'play'){
-      console.log(currentAudioFile, currentAudio)
+      // console.log(currentAudioFile, currentAudio)
+      const sts = await currentAudio.getStatusAsync()
+      console.log(sts)
       const { isPlaying: isCurrentAudioPlaying } = await currentAudio.getStatusAsync()
       if(isCurrentAudioPlaying){
         await currentAudio.pauseAsync()
         // setIsPaused(true)
         setIsPlaying(false)
       } else {
+        console.log('play ')
         await currentAudio.playAsync()
         // setIsPaused(false)
         setIsPlaying(true)
