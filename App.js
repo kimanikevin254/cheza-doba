@@ -6,45 +6,54 @@ import Slider from '@react-native-community/slider';
 import { Entypo } from '@expo/vector-icons';
 
 export default function App() {
-  const [audioList, setAudioList] = useState(null)
+  //  The list of audio files.
+  const [audioFiles, setAudioFiles] = useState(null)
+  // Permissions
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions()
+  // The audio file that is playing
+  const [currentAudioFile, setCurrentAudioFile] = useState(null)
+  // CAudio.Sound instance of the audio file that is playing
   const [currentAudio, setCurrentAudio] = useState(null)
-  const [currentTrack, setCurrentTrack] = useState(null)
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
+  // Duration of the current audio file in seconds
+  const [duration, setDuration] = useState(0)
+  // Track the position of the current audio file => For the slider
+  const [position, setPosition] = useState(0)
 
-  // fetch music on initial page load
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  // Fetch music on initial screen load
   useEffect(() => {
     const fetchAudios = async () => {
+      // Check if necessary permissions are granted
       if(permissionResponse.status !== 'granted') {
         try {
+          // No permission granted. Request for permission
           await requestPermission();
         } catch (error) {
           console.log('unable to request permission', error)
         }
       }
-  
+      
+      // Fetch audio files from the device
       try {
-        const fetchedAudio = await MediaLibrary.getAssetsAsync({
+        const fetchedAudioFiles = await MediaLibrary.getAssetsAsync({
           mediaType: 'audio',
-          first: 9999999999,
+          first: 9999999999, // Set a large number here since the library implements pagination and we want to fetch all audio files at once
         })
         
-        setAudioList(fetchedAudio.assets.sort((a, b) => a.filename.localeCompare(b.filename)))
+        setAudioFiles(fetchedAudioFiles.assets.sort((a, b) => a.filename.localeCompare(b.filename)))
       } catch (error) {
         console.log('error fetching audios', error)
       }
     };
   
     fetchAudios();
-  }, [permissionResponse])
+  }, [permissionResponse]) // Always fetch all the audio files when permissions are changed
 
   // Play sound
   async function playAudio(audio){
-    setCurrentTrack(audio)
+    setCurrentAudioFile(audio)
 
     const sound = new Audio.Sound()
 
@@ -55,6 +64,7 @@ export default function App() {
 
       setCurrentAudio(sound)
 
+      // Get the duration  of the audio file in seconds
       const { durationMillis } = await sound.getStatusAsync()
       setDuration(durationMillis)
 
@@ -65,24 +75,31 @@ export default function App() {
       console.log('error', error)
     }
   }
-  // cleanup the sound from memory
+  // Cleanup the sound from memory
   useEffect(() => {
     return currentAudio ?
     () => {
       console.log('Unloading')
       currentAudio.unloadAsync()
+      setCurrentAudio(null)
+      setIsPlaying(false)
+      setDuration(0)
+      setPosition(0)
     } :
     undefined
   }, [currentAudio])
 
+  // Handle slider interactions
   const handleSliderChange = (value) => {
     if (!currentAudio) return;
-
+    // Adjust slider position
     setPosition(value);
+
+    // Adjust the position of the current audio
     currentAudio.setPositionAsync(value);
   };
 
-  // Adjust slider position
+  // Sync slider position with the audio position
   useEffect(() => {
     const interval = setInterval(async () => {
       if(currentAudio){
@@ -99,13 +116,16 @@ export default function App() {
   const handleAudioControls = async ({ action }) => {
     // Play/pause
     if(action === 'play'){
+      console.log(currentAudioFile, currentAudio)
       const { isPlaying: isCurrentAudioPlaying } = await currentAudio.getStatusAsync()
       if(isCurrentAudioPlaying){
         await currentAudio.pauseAsync()
-        setIsPaused(true)
+        // setIsPaused(true)
+        setIsPlaying(false)
       } else {
         await currentAudio.playAsync()
-        setIsPaused(false)
+        // setIsPaused(false)
+        setIsPlaying(true)
       }
     }
 
@@ -115,10 +135,16 @@ export default function App() {
 
       // Play next track
       // Check the index of the current song in the audio list array
-      let currentPosition = audioList.indexOf(currentTrack)
-      
-      // Retrieve next song from array and play it
-      playAudio(audioList[currentPosition+1])
+      let currentPosition = audioFiles.indexOf(currentAudioFile)
+
+      // Check if the current audio is the last in the list
+      if(currentPosition ===  audioFiles.length - 1){
+        // If it's the last one, play the first song
+        playAudio(audioFiles[0])
+      } else {
+        // Play the next audio in the list
+        playAudio(audioFiles[currentPosition+1])
+      }
     }
 
     if(action === 'previous'){
@@ -127,15 +153,20 @@ export default function App() {
 
       // Play previous track
       // Check the index of the current song in the audio list array
-      let currentPosition = audioList.indexOf(currentTrack)
-      
-      // Retrieve previous song from array and play it
-      playAudio(audioList[currentPosition-1])
-    }
+      let currentPosition = audioFiles.indexOf(currentAudioFile)
 
+      // Check if the current audio is the first in the list
+      if (currentPosition === 0 ){
+        // If it's the first one, play the last audio
+        playAudio(audioFiles[audioFiles.length-1])
+      } else {
+        // Play the previous audio
+        playAudio(audioFiles[currentPosition-1])
+      }      
+    }
   } 
 
-  // Format duration
+  // Format audio duration to hh:mm:ss
   function formatDuration(seconds) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -145,10 +176,9 @@ export default function App() {
 }
 
   // Component for each item
-  const renderItem = ({ item: audio, index }) => (
+  const renderItem = ({ item: audio }) => (
     <TouchableOpacity 
-      // className={audio.uri === currentTrack && currentTrack.uri && 'bg-black text-white font-semibold'}
-      className={currentTrack && audio.uri === currentTrack.uri ? 'bg-[#c7c1f0] mx-4 my-2 p-2 rounded-lg' : 'bg-white mx-4 my-2 p-2 rounded-lg'}
+      className={currentAudioFile && audio.uri === currentAudioFile.uri ? 'bg-[#c7c1f0] mx-4 my-2 p-2 rounded-lg' : 'bg-white mx-4 my-2 p-2 rounded-lg'}
       onPress={() => playAudio(audio)}
       activeOpacity={0.8}
     >
@@ -177,34 +207,34 @@ export default function App() {
         <Text className='font-bold text-2xl'>NGOMA</Text>
       </View>
       {
-        audioList ? 
+        audioFiles ? 
         (
           <>
             <FlatList 
-              data={audioList}
+              data={audioFiles}
               renderItem={renderItem}
               keyExtractor={item => item.id}
               className='flex-1 bg-gray-100'
             />
 
             {
-              currentTrack &&
+              currentAudioFile &&
               <View className='px-3 pt-3 bg-[#7539FE] rounded-t-2xl'>
                 <View className='flex-row items-center justify-between'>
                   <View className='flex-row w-1/2 gap-2 items-center'>
                     <View className='h-12 w-12 bg-gray-100 rounded-full items-center justify-center'>
-                      <Text className='text-2xl font-semibold'>{currentTrack.filename.split('')[0]}</Text>
+                      <Text className='text-2xl font-semibold'>{currentAudioFile.filename.split('')[0]}</Text>
                     </View>
 
                     <View>
                       <Text className='font-semibold text-white text-sm'>
                         {
-                          currentTrack.filename.length > 15 ?
-                          currentTrack.filename.slice(0, 15) + '...' :
-                          currentTrack.filename
+                          currentAudioFile.filename.length > 15 ?
+                          currentAudioFile.filename.slice(0, 15) + '...' :
+                          currentAudioFile.filename
                         }
                       </Text>
-                      <Text className='text-gray-200 text-xs'>{formatDuration(currentTrack.duration)}</Text>
+                      <Text className='text-gray-200 text-xs'>{formatDuration(currentAudioFile.duration)}</Text>
                     </View>
                   </View>
 
@@ -214,9 +244,9 @@ export default function App() {
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={() => handleAudioControls({ action: 'play' })}>
-                      { isPaused ?
-                        <Entypo name="controller-play" size={24} color="white" /> :
-                        <Entypo name="controller-paus" size={24} color="white" />
+                      { isPlaying ?
+                        <Entypo name="controller-paus" size={24} color="white" /> :
+                        <Entypo name="controller-play" size={24} color="white" />
                       }
                     </TouchableOpacity>
 
