@@ -24,6 +24,7 @@ export default function SliderControl(){
             maximumValue={duration}
             value={position}
             onSlidingComplete={handleSliderChange}
+            onValueChange={handleSliderChange}
             disabled={!currentAudio}
             thumbTintColor='white'
             maximumTrackTintColor='white'

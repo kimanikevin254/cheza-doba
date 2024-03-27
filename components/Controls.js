@@ -42,13 +42,18 @@ export default function AudioControls(){
     const handleAudioControls = async ({ action }) => {
         // Play/pause
         if(action === 'play'){
-          const { isPlaying: isCurrentAudioPlaying } = await currentAudio.getStatusAsync()
-          if(isCurrentAudioPlaying){
-            await currentAudio.pauseAsync()
-            dispatch(setIsPlaying(false))
+          const { isPlaying: isCurrentAudioPlaying, positionMillis, durationMillis } = await currentAudio.getStatusAsync()
+          // Allow user to manually replay audio that just finished playing
+          if(positionMillis === durationMillis){
+            playAudio(currentAudioFile)
           } else {
-            await currentAudio.playAsync()
-            dispatch(setIsPlaying(true))
+            if(isCurrentAudioPlaying){
+              await currentAudio.pauseAsync()
+              dispatch(setIsPlaying(false))
+            } else {
+              await currentAudio.playAsync()
+              dispatch(setIsPlaying(true))
+            }
           }
         }
     
