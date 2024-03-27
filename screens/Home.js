@@ -97,7 +97,7 @@ export default function Home() {
   return (
       <SafeAreaView className='pt-8 flex-1 bg-white'>
         <View className='py-2 px-4'>
-          <Text className='font-bold text-2xl'>NGOMA</Text>
+          <Text className='font-bold text-2xl'>Cheza Doba</Text>
         </View>
         {
           audioFiles ? 

@@ -51,7 +51,7 @@ export const AudioItem = ({ item: audio }) => {
       >
         <View className='flex-row gap-4 items-center'>
           <View className='h-12 w-12 bg-gray-100 rounded-full items-center justify-center'>
-            <Text className='text-2xl font-semibold'>{audio.filename.split('')[0]}</Text>
+            <Text className='text-2xl font-semibold'>{audio.filename.split('')[0].toUpperCase()}</Text>
           </View>
           
           <View>

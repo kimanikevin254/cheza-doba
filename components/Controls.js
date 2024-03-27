@@ -89,7 +89,7 @@ export default function AudioControls(){
         }
       } 
     return (
-        <View className='flex-row items-center w-1/2 justify-around'>
+        <View className='flex-row items-center w-2/5 justify-around'>
             <TouchableOpacity 
             onPress={() => handleAudioControls({ action: 'previous', currentAudio, setIsPlaying, audioFiles, currentAudioFile, setDuration, setPosition })}
             >

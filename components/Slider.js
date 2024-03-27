@@ -19,12 +19,15 @@ export default function SliderControl(){
 
     return (
         <Slider 
-            style={{ height: 50 }}
+            style={{ height: 50, borderColor: 'white',  }}
             minimumValue={0}
             maximumValue={duration}
             value={position}
             onSlidingComplete={handleSliderChange}
             disabled={!currentAudio}
+            thumbTintColor='white'
+            maximumTrackTintColor='white'
+            minimumTrackTintColor='white'
         />
     )
 }
