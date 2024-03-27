@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import { Button, SafeAreaView, ScrollView, View, Text, TouchableOpacity, FlatList } from "react-native";
+import { memo, useEffect, useState } from "react";
+import { Button, SafeAreaView, ScrollView, View, Text, TouchableOpacity, FlatList, Dimensions, StatusBar } from "react-native";
 import * as MediaLibrary from 'expo-media-library'
 import { Audio, InterruptionModeAndroid } from 'expo-av'
 import Slider from '@react-native-community/slider';
 import { Entypo } from '@expo/vector-icons';
+import { FlashList } from "@shopify/flash-list";
 
 export default function App() {
   //  The list of audio files.
@@ -85,6 +86,13 @@ export default function App() {
       setIsPlaying(true)
     } catch (error) {
       console.log('error', error)
+
+      // Stop the playing audio
+      currentAudio.unloadAsync()
+      // setCurrentAudio(null)
+      setIsPlaying(false)
+      setDuration(0)
+      setPosition(0)
     }
   }
   // Cleanup the sound from memory
@@ -203,30 +211,35 @@ export default function App() {
 }
 
   // Component for each item
-  const renderItem = ({ item: audio }) => (
+  const RenderItem = memo(({ item: audio }) => (
     <TouchableOpacity 
-      className={currentAudioFile && audio.uri === currentAudioFile.uri ? 'bg-[#c7c1f0] mx-4 my-2 p-2 rounded-lg' : 'bg-white mx-4 my-2 p-2 rounded-lg'}
-      onPress={() => playAudio(audio)}
-      activeOpacity={0.8}
-    >
-      <View className='flex-row gap-4 items-center'>
-        <View className='h-12 w-12 bg-gray-100 rounded-full items-center justify-center'>
-          <Text className='text-2xl font-semibold'>{audio.filename.split('')[0]}</Text>
+        className={currentAudioFile && audio.uri === currentAudioFile.uri ? 'bg-[#c7c1f0] mx-4 my-2 p-2 rounded-lg' : 'bg-white mx-4 my-2 p-2 rounded-lg'}
+        onPress={() => playAudio(audio)}
+        activeOpacity={0.8}
+        style={{ height: 65 }}
+      >
+        <View className='flex-row gap-4 items-center'>
+          <View className='h-12 w-12 bg-gray-100 rounded-full items-center justify-center'>
+            <Text className='text-2xl font-semibold'>{audio.filename.split('')[0]}</Text>
+          </View>
+          
+          <View>
+            <Text className='font-semibold'>
+              {
+                audio.filename.length > 30 ?
+                audio.filename.slice(0, 30) + '...' :
+                audio.filename
+              }
+            </Text>
+            <Text className='text-gray-500 text-sm'>{formatDuration(audio.duration)}</Text>
+          </View>
         </View>
-        
-        <View>
-          <Text className='font-semibold'>
-            {
-              audio.filename.length > 30 ?
-              audio.filename.slice(0, 30) + '...' :
-              audio.filename
-            }
-          </Text>
-          <Text className='text-gray-500 text-sm'>{formatDuration(audio.duration)}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  )
+      </TouchableOpacity>
+  ),
+  (prevProps, nextProps) => {
+    return prevProps.item.uri === nextProps.item.uri
+  }
+  );
 
   return (
     <SafeAreaView className='pt-8 flex-1 bg-white'>
@@ -237,11 +250,17 @@ export default function App() {
         audioFiles ? 
         (
           <>
-            <FlatList 
+            {/* <FlatList 
               data={audioFiles}
-              renderItem={renderItem}
-              keyExtractor={item => item.id}
+              renderItem={({ item }) => <RenderItem item={item} /> }
+              keyExtractor={item => item?.id.toString()}
               className='flex-1 bg-gray-100'
+            /> */}
+            <FlashList 
+              data={audioFiles}
+              renderItem={({ item }) => <RenderItem item={item} /> }
+              className='flex-1 bg-gray-100'
+              estimatedItemSize={81}
             />
 
             {
