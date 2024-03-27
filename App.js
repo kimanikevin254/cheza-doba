@@ -1,10 +1,12 @@
-import { memo, useEffect, useState } from "react";
-import { Button, SafeAreaView, ScrollView, View, Text, TouchableOpacity, FlatList, Dimensions, StatusBar } from "react-native";
+import { useEffect, useState } from "react";
+import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
 import * as MediaLibrary from 'expo-media-library'
 import { Audio, InterruptionModeAndroid } from 'expo-av'
 import Slider from '@react-native-community/slider';
 import { Entypo } from '@expo/vector-icons';
 import { FlashList } from "@shopify/flash-list";
+import { AudioItem } from './components/AudioItem'
+import { handleAudioControls } from "./utils/audio";
 
 export default function App() {
   //  The list of audio files.
@@ -64,37 +66,6 @@ export default function App() {
     fetchAudios();
   }, [permissionResponse]) // Always fetch all the audio files when permissions are changed
 
-  // Play sound
-  async function playAudio(audio){
-    setCurrentAudioFile(audio)
-
-    const sound = new Audio.Sound()
-
-    try {
-      await sound.loadAsync({
-        uri: audio.uri,
-      })
-
-      setCurrentAudio(sound)
-
-      // Get the duration  of the audio file in seconds
-      const { durationMillis } = await sound.getStatusAsync()
-      setDuration(durationMillis)
-
-      await sound.playAsync()
-
-      setIsPlaying(true)
-    } catch (error) {
-      console.log('error', error)
-
-      // Stop the playing audio
-      currentAudio.unloadAsync()
-      // setCurrentAudio(null)
-      setIsPlaying(false)
-      setDuration(0)
-      setPosition(0)
-    }
-  }
   // Cleanup the sound from memory
   useEffect(() => {
     return currentAudio ?
@@ -122,7 +93,7 @@ export default function App() {
   // Sync slider position with the audio position
   useEffect(() => {
     const interval = setInterval(async () => {
-      if(currentAudio){
+      if(currentAudio && isPlaying){
         const { positionMillis } = await currentAudio.getStatusAsync()
         setPosition(positionMillis)
       }
@@ -144,63 +115,6 @@ export default function App() {
 
   }, [position, duration])
 
-  // Handle audio controls
-  const handleAudioControls = async ({ action }) => {
-    // Play/pause
-    if(action === 'play'){
-      // console.log(currentAudioFile, currentAudio)
-      const sts = await currentAudio.getStatusAsync()
-      console.log(sts)
-      const { isPlaying: isCurrentAudioPlaying } = await currentAudio.getStatusAsync()
-      if(isCurrentAudioPlaying){
-        await currentAudio.pauseAsync()
-        // setIsPaused(true)
-        setIsPlaying(false)
-      } else {
-        console.log('play ')
-        await currentAudio.playAsync()
-        // setIsPaused(false)
-        setIsPlaying(true)
-      }
-    }
-
-    if(action === 'next'){
-      // Stop current track
-      await currentAudio.stopAsync()
-
-      // Play next track
-      // Check the index of the current song in the audio list array
-      let currentPosition = audioFiles.indexOf(currentAudioFile)
-
-      // Check if the current audio is the last in the list
-      if(currentPosition ===  audioFiles.length - 1){
-        // If it's the last one, play the first song
-        playAudio(audioFiles[0])
-      } else {
-        // Play the next audio in the list
-        playAudio(audioFiles[currentPosition+1])
-      }
-    }
-
-    if(action === 'previous'){
-      // Stop current track
-      await currentAudio.stopAsync()
-
-      // Play previous track
-      // Check the index of the current song in the audio list array
-      let currentPosition = audioFiles.indexOf(currentAudioFile)
-
-      // Check if the current audio is the first in the list
-      if (currentPosition === 0 ){
-        // If it's the first one, play the last audio
-        playAudio(audioFiles[audioFiles.length-1])
-      } else {
-        // Play the previous audio
-        playAudio(audioFiles[currentPosition-1])
-      }      
-    }
-  } 
-
   // Format audio duration to hh:mm:ss
   function formatDuration(seconds) {
     const hours = Math.floor(seconds / 3600);
@@ -209,37 +123,6 @@ export default function App() {
     
     return `${hours > 0 ? hours.toString().padStart(2, '0') + ':' : ''}${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
-
-  // Component for each item
-  const RenderItem = memo(({ item: audio }) => (
-    <TouchableOpacity 
-        className={currentAudioFile && audio.uri === currentAudioFile.uri ? 'bg-[#c7c1f0] mx-4 my-2 p-2 rounded-lg' : 'bg-white mx-4 my-2 p-2 rounded-lg'}
-        onPress={() => playAudio(audio)}
-        activeOpacity={0.8}
-        style={{ height: 65 }}
-      >
-        <View className='flex-row gap-4 items-center'>
-          <View className='h-12 w-12 bg-gray-100 rounded-full items-center justify-center'>
-            <Text className='text-2xl font-semibold'>{audio.filename.split('')[0]}</Text>
-          </View>
-          
-          <View>
-            <Text className='font-semibold'>
-              {
-                audio.filename.length > 30 ?
-                audio.filename.slice(0, 30) + '...' :
-                audio.filename
-              }
-            </Text>
-            <Text className='text-gray-500 text-sm'>{formatDuration(audio.duration)}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-  ),
-  (prevProps, nextProps) => {
-    return prevProps.item.uri === nextProps.item.uri
-  }
-  );
 
   return (
     <SafeAreaView className='pt-8 flex-1 bg-white'>
@@ -255,11 +138,21 @@ export default function App() {
               renderItem={({ item }) => <RenderItem item={item} /> }
               keyExtractor={item => item?.id.toString()}
               className='flex-1 bg-gray-100'
-            /> */}
+            /> */} 
             <FlashList 
               data={audioFiles}
-              renderItem={({ item }) => <RenderItem item={item} /> }
-              className='flex-1 bg-gray-100'
+              renderItem={({ item }) => <AudioItem 
+                item={item} 
+                currentAudioFile={currentAudioFile} 
+                setCurrentAudioFile={setCurrentAudioFile} 
+                currentAudio={currentAudio} 
+                setCurrentAudio={setCurrentAudio} 
+                formatDuration={formatDuration}
+                setDuration={setDuration}
+                setIsPlaying={setIsPlaying}
+                setPosition={setPosition} 
+              /> }
+              contentContainerStyle={{ flex: 1, backgroundColor: 'rgb(243 244 246)'}}
               estimatedItemSize={81}
             />
 
@@ -285,18 +178,24 @@ export default function App() {
                   </View>
 
                   <View className='flex-row items-center w-1/2 justify-around'>
-                    <TouchableOpacity onPress={() => handleAudioControls({ action: 'previous' })}>
+                    <TouchableOpacity 
+                      onPress={() => handleAudioControls({ action: 'next', currentAudio, setIsPlaying, audioFiles, currentAudioFile, setCurrentAudio, setCurrentAudioFile, setDuration, setPosition })}
+                    >
                       <Entypo name="controller-jump-to-start" size={24} color="white" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => handleAudioControls({ action: 'play' })}>
+                    <TouchableOpacity 
+                      onPress={() => handleAudioControls({ action: 'play', currentAudio, setIsPlaying, audioFiles, currentAudioFile })}
+                    >
                       { isPlaying ?
                         <Entypo name="controller-paus" size={24} color="white" /> :
                         <Entypo name="controller-play" size={24} color="white" />
                       }
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => handleAudioControls({ action: 'next' })}>
+                    <TouchableOpacity 
+                      onPress={() => handleAudioControls({ action: 'next', currentAudio, setIsPlaying, audioFiles, currentAudioFile, setCurrentAudio, setCurrentAudioFile, setDuration, setPosition })}
+                    >
                       <Entypo name="controller-next" size={24} color="white" />
                     </TouchableOpacity>
                   </View>
