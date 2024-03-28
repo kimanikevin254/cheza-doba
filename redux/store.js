@@ -4,10 +4,11 @@ import audioPlayerReducer from './audioPlayer/audioPlayerSlice'
 export const store = configureStore({
     middleware: (getDefaultMiddleware) => 
         getDefaultMiddleware({
-            serializableCheck: {
-                ignoredPaths: ['audioPlayer.currentAudio'],
-                ignoredActionPaths: ['payload']
-            }
+            // serializableCheck: {
+            //     ignoredPaths: ['audioPlayer.currentAudio'],
+            //     ignoredActionPaths: ['payload']
+            // }
+            serializableCheck: false,
         }),
     reducer: {
         audioPlayer: audioPlayerReducer,

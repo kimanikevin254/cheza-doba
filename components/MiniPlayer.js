@@ -1,14 +1,22 @@
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import AudioControls from "./Controls";
 import SliderControl from "./Slider";
 
 import { useSelector } from 'react-redux'
 import { formatDuration } from "../utils/duration";
+import { Button } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function MiniPlayer(){
     const { currentAudioFile } = useSelector((state) => state.audioPlayer)
+
+    const navigation = useNavigation()
     return (
-        <View className='px-3 pt-3 bg-[#7539FE] rounded-t-2xl'>
+        <TouchableOpacity 
+            onPress={() => navigation.navigate('Player')}
+            activeOpacity={0.8}
+            className='px-3 pt-3 bg-[#7539FE] rounded-t-2xl'
+        >
             <View className='flex-row items-center justify-between'>
             <View className='flex-row w-1/2 gap-2 items-center'>
                 <View className='h-12 w-12 bg-gray-100 rounded-full items-center justify-center'>
@@ -31,6 +39,6 @@ export default function MiniPlayer(){
             </View>
 
             <SliderControl />
-        </View>
+        </TouchableOpacity>
     )
 }

@@ -2,7 +2,7 @@ import Slider from '@react-native-community/slider';
 import { useSelector, useDispatch } from 'react-redux'
 import { setPosition } from '../redux/audioPlayer/audioPlayerSlice';
 
-export default function SliderControl(){
+export default function SliderControl({ screen }){
     const dispatch = useDispatch()
 
     const { duration, position, currentAudio } = useSelector((state) => state.audioPlayer)
@@ -26,9 +26,9 @@ export default function SliderControl(){
             onSlidingComplete={handleSliderChange}
             onValueChange={handleSliderChange}
             disabled={!currentAudio}
-            thumbTintColor='white'
-            maximumTrackTintColor='white'
-            minimumTrackTintColor='white'
+            thumbTintColor={screen === 'Player' ? 'black' : 'white'}
+            maximumTrackTintColor={screen === 'Player' ? 'black' : 'white'}
+            minimumTrackTintColor={screen === 'Player' ? 'black' : 'white'}
         />
     )
 }

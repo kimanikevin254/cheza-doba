@@ -4,7 +4,7 @@ import { TouchableOpacity, View } from 'react-native'
 import { Entypo } from '@expo/vector-icons';
 import { Audio } from 'expo-av'
 
-export default function AudioControls(){
+export default function AudioControls({ screen }){
     const dispatch = useDispatch()
 
     const { currentAudio, audioFiles, currentAudioFile, isPlaying } = useSelector((state) => state.audioPlayer)
@@ -94,26 +94,26 @@ export default function AudioControls(){
         }
       } 
     return (
-        <View className='flex-row items-center w-2/5 justify-around'>
+        <View className={ screen === 'Player' ? 'flex-row items-center w-full justify-around' : 'flex-row items-center w-2/5 justify-around' }>
             <TouchableOpacity 
             onPress={() => handleAudioControls({ action: 'previous', currentAudio, setIsPlaying, audioFiles, currentAudioFile, setDuration, setPosition })}
             >
-            <Entypo name="controller-jump-to-start" size={24} color="white" />
+            <Entypo name="controller-jump-to-start" size={24} color={ screen === 'Player' ? 'black' : 'white' } />
             </TouchableOpacity>
 
             <TouchableOpacity 
             onPress={() => handleAudioControls({ action: 'play', currentAudio, setIsPlaying, audioFiles, currentAudioFile })}
             >
             { isPlaying ?
-                <Entypo name="controller-paus" size={24} color="white" /> :
-                <Entypo name="controller-play" size={24} color="white" />
+                <Entypo name="controller-paus" size={24} color={ screen === 'Player' ? 'black' : 'white' }  /> :
+                <Entypo name="controller-play" size={24} color={ screen === 'Player' ? 'black' : 'white' }  />
             }
             </TouchableOpacity>
 
             <TouchableOpacity 
             onPress={() => handleAudioControls({ action: 'next', currentAudio, setIsPlaying, audioFiles, currentAudioFile, setDuration, setPosition })}
             >
-            <Entypo name="controller-next" size={24} color="white" />
+            <Entypo name="controller-next" size={24} color={ screen === 'Player' ? 'black' : 'white' }  />
             </TouchableOpacity>
         </View>
     )
