@@ -4,7 +4,6 @@ import SliderControl from "./Slider";
 
 import { useSelector } from 'react-redux'
 import { formatDuration } from "../utils/duration";
-import { Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 export default function MiniPlayer(){

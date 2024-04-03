@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
-import { SafeAreaView, View, Text, TouchableOpacity } from "react-native";
+import { useEffect } from "react";
+import { SafeAreaView, View, Text } from "react-native";
 import * as MediaLibrary from 'expo-media-library'
 import { Audio, InterruptionModeAndroid } from 'expo-av'
 import { FlashList } from "@shopify/flash-list";
 import { useSelector, useDispatch } from 'react-redux'
 import { AudioItem } from "../components/AudioItem";
-import { setAudioFiles, setDuration, setIsPlaying, setPosition } from "../redux/audioPlayer/audioPlayerSlice";
+import { setAudioFiles, setDuration, setIsPlaying, setPosition, showAudioOptionsModal } from "../redux/audioPlayer/audioPlayerSlice";
 import MiniPlayer from "../components/MiniPlayer";
+import AudioOptionsModal from "../components/AudioOptionsModal";
+import AddToPlaylistModal from "../components/AddToPlaylistModal";
 
 export default function Home() {
   // Permissions
@@ -14,7 +16,7 @@ export default function Home() {
 
   const dispatch = useDispatch()
 
-  const { audioFiles, currentAudioFile, currentAudio, isPlaying, position, duration } = useSelector((state) => state.audioPlayer)
+  const { audioFiles, currentAudioFile, currentAudio, isPlaying, position, duration, selectedAudio, showAddToPlayListModal, showAudioOptionsModal } = useSelector((state) => state.audioPlayer)
 
   // Configure audio exprience on page load
   useEffect(() => {
@@ -94,8 +96,6 @@ export default function Home() {
 
   }, [position, duration])
 
-  console.log('Audio files length', audioFiles?.length)
-
   return (
       <SafeAreaView className='pt-4 flex-1 bg-white'>
         <View className='py-2 px-4'>
@@ -123,6 +123,17 @@ export default function Home() {
               {
                 currentAudioFile &&
                 <MiniPlayer />
+              }
+
+              {/* Modals */}
+              {
+                selectedAudio && showAudioOptionsModal &&
+                <AudioOptionsModal />
+              }
+
+              {
+                selectedAudio && showAddToPlayListModal &&
+                <AddToPlaylistModal />
               }
             </>
           ) :
