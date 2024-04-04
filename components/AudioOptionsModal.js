@@ -15,10 +15,11 @@ export default function AudioOptionsModal() {
     }
   return (
     <Modal transparent={true} animationType="slide" onRequestClose={() => dispatch(setShowAudioOptionsModal())}>
+      {/* Modal overlay */}
       <TouchableWithoutFeedback onPress={() => dispatch(setShowAudioOptionsModal())}>
-        {/* Modal overlay */}
         <View className='absolute top-0 bottom-0 left-0 right-0 bg-gray-100 opacity-50' />
       </TouchableWithoutFeedback>
+      
       <View className='z-50 bg-[#7539FE] absolute bottom-0 w-full p-6 rounded-t-2xl'>
           {/* Audio details */}
           <View className='flex-row gap-4 items-center'>

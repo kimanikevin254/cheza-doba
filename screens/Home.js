@@ -9,6 +9,7 @@ import { setAudioFiles, setDuration, setIsPlaying, setPosition, showAudioOptions
 import MiniPlayer from "../components/MiniPlayer";
 import AudioOptionsModal from "../components/AudioOptionsModal";
 import AddToPlaylistModal from "../components/AddToPlaylistModal";
+import CreateNewPlaylistModal from "../components/CreateNewPlaylistModal";
 
 export default function Home() {
   // Permissions
@@ -16,7 +17,7 @@ export default function Home() {
 
   const dispatch = useDispatch()
 
-  const { audioFiles, currentAudioFile, currentAudio, isPlaying, position, duration, selectedAudio, showAddToPlayListModal, showAudioOptionsModal } = useSelector((state) => state.audioPlayer)
+  const { audioFiles, currentAudioFile, currentAudio, isPlaying, position, duration, selectedAudio, showAddToPlayListModal, showAudioOptionsModal, showCreateNewPlayListModal } = useSelector((state) => state.audioPlayer)
 
   // Configure audio exprience on page load
   useEffect(() => {
@@ -134,6 +135,11 @@ export default function Home() {
               {
                 selectedAudio && showAddToPlayListModal &&
                 <AddToPlaylistModal />
+              }
+
+              {
+                selectedAudio && showCreateNewPlayListModal &&
+                <CreateNewPlaylistModal />
               }
             </>
           ) :

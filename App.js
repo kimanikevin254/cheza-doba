@@ -7,7 +7,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Player from './screens/Player';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Entypo } from '@expo/vector-icons';
-import Playlists from './screens/Playlists';
+import PlaylistsScreen from './screens/Playlists';
+import PlaylistScreen from './screens/PlaylistScreen';
 
 // const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -19,12 +20,12 @@ function HomeStackScreen(){
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen 
-        name='Home'
+        name='HomeScreen'
         component={Home}
       />
 
       <HomeStack.Screen 
-        name='Player'
+        name='PlayerScreen'
         component={Player}
       />
     </HomeStack.Navigator>
@@ -35,8 +36,15 @@ function PlaylistsStackScreen() {
   return (
     <PlaylistsStack.Navigator>
       <PlaylistsStack.Screen
-        name="Playlists"
-        component={Playlists}
+        name="PlaylistsScreen"
+        component={PlaylistsScreen}
+        options={{ title: 'Playlists' }}
+      />
+
+      <PlaylistsStack.Screen
+        name="PlaylistScreen"
+        component={PlaylistScreen}
+        options={{ title: 'Playlist' }}
       />
     </PlaylistsStack.Navigator>
   );

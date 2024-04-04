@@ -10,6 +10,9 @@ const initialState = {
     selectedAudio: null,
     showAudioOptionsModal: false,
     showAddToPlayListModal: false,
+    showCreateNewPlayListModal: false,
+
+    playlists: null,
 }
 
 export const counterSlice = createSlice({
@@ -43,12 +46,21 @@ export const counterSlice = createSlice({
       setShowAddToPlaylistModal: (state) => {
         state.showAddToPlayListModal = !state.showAddToPlayListModal
       },
+      setShowCreateNewPlaylistModal: (state) => {
+        state.showCreateNewPlayListModal = !state.showCreateNewPlayListModal
+      },
+      setPlaylists: (state, action) => {
+        state.playlists = action.payload
+      },
+      // createNewPlaylistAndAddAudio: (action) => {
+        
+      // },
     },
   })
   
   // Action creators are generated for each case reducer function
   export const { setAudioFiles, setCurrentAudioFile, setCurrentAudio, setDuration, setPosition, setIsPlaying, setSelectedAudio, setShowAudioOptionsModal,
-    setShowAddToPlaylistModal, 
+    setShowAddToPlaylistModal, setShowCreateNewPlaylistModal, setPlaylists
   } = counterSlice.actions
   
   export default counterSlice.reducer

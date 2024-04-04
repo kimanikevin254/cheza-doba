@@ -12,7 +12,7 @@ export default function MiniPlayer(){
     const navigation = useNavigation()
     return (
         <TouchableOpacity 
-            onPress={() => navigation.navigate('Player')}
+            onPress={() => navigation.navigate('PlayerScreen')}
             activeOpacity={0.8}
             className='px-3 pt-3 bg-[#7539FE] rounded-t-2xl'
         >
